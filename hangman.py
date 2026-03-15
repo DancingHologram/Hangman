@@ -2,6 +2,7 @@ import wordlist
 import pygame
 import sys
 import constants
+from button import Button
 
 class Hangman:
     def __init__(self, word, word_length, remaining_letters, displayed_word, num_wrong, num_guesses, guessed_letters):
@@ -23,26 +24,45 @@ class Hangman:
         self.guessed_letters = ""
 
     def get_letter(self, letter):
-        while True:
-            guess = letter.strip().upper()
-        
-            # Make sure the user enters a letter and only one letter
-            if guess == "" or len(guess) > 1:
-                print("Invalid entry. " +
-                      "Please enter one and only one letter.")
-                continue
-            # Don't let the user try the same letter more than once
-            elif guess in self.guessed_letters:
-                print("You already tried that letter.")
-                continue
-            else:
-                return guess
+        if letter in self.guessed_letters:
+            return False
+        else:
+            self.guessed_letters += letter
+            return True
             
     def draw_screen(self, surface):
-        surface.fill((255, 255, 255))  # Clear the screen with white background
-        font = pygame.font.Font(None, 36)
-        text = font.render(f"Word: {add_spaces(self.displayed_word)}  Guesses: {self.num_guesses}  Wrong: {self.num_wrong}  Tried: {add_spaces(self.guessed_letters)}", True, (0, 0, 0))
+        surface.fill(constants.WHITE)  # Clear the screen with white background
+        font = pygame.font.Font(None, constants.WORD_FONT_SIZE)
+        text = font.render(f"Word: {add_spaces(self.displayed_word)}  Guesses: {self.num_guesses}  Wrong: {self.num_wrong}  Tried: {add_spaces(self.guessed_letters)}", True, constants.BLACK)
         surface.blit(text, (20, 20))
+        pygame.display.flip()
+
+    def init_menu_state(self):
+        self.menu_button = Button(400, 300, 200, 50, "Play Game")
+        self.add_word_button = Button(400, 360, 200, 50, "Add Word")
+        self.quit_button = Button(400, 400, 200, 50, "Quit")
+
+    def handle_menu_events(self, event, menu_state):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = event.pos
+            if self.menu_button.is_clicked(mouse_x, mouse_y):
+                self.reset_game()
+                return "play"
+            elif self.add_word_button.is_clicked(mouse_x, mouse_y):
+                return "add_word"
+            elif self.quit_button.is_clicked(mouse_x, mouse_y):
+                pygame.quit()
+                sys.exit()
+        return menu_state
+    
+    def draw_menu(self, surface, menu_state):
+        surface.fill(constants.WHITE)  # Clear the screen with white background
+        font = pygame.font.Font(None, constants.TITLE_FONT_SIZE)
+        title_text = font.render("Welcome to Hangman!", True, constants.BLACK)
+        surface.blit(title_text, (constants.GAME_WIDTH // 2 - title_text.get_width() // 2, 100))
+        self.menu_button.draw(surface)
+        self.add_word_button.draw(surface)
+        self.quit_button.draw(surface)
         pygame.display.flip()
 
 # Get a random word from the word list
@@ -57,28 +77,12 @@ def add_spaces(word):
 
 # Draw the display
 def draw_screen(num_wrong, num_guesses, guessed_letters, displayed_word):
-    print("-" * 79)
-    print("Word:", add_spaces(displayed_word),
-          "  Guesses:", num_guesses,
-          "  Wrong:", num_wrong,
-          "  Tried:", add_spaces(guessed_letters))
+    pass
 
 # Get next letter from user
 def get_letter(guessed_letters):
-    while True:
-        guess = input("Enter a letter: ").strip().upper()
-    
-        # Make sure the user enters a letter and only one letter
-        if guess == "" or len(guess) > 1:
-            print("Invalid entry. " +
-                  "Please enter one and only one letter.")
-            continue
-        # Don't let the user try the same letter more than once
-        elif guess in guessed_letters:
-            print("You already tried that letter.")
-            continue
-        else:
-            return guess
+    pass
+
 
 # The input/process/draw technique is common in game programming
 def play_game():
@@ -115,22 +119,16 @@ def play_game():
 
         draw_screen(num_wrong, num_guesses, guessed_letters, displayed_word)
 
-    print("-" * 79)
-    if remaining_letters == 0:
-        print("Congratulations! You got it in", 
-               num_guesses, "guesses.")   
-    else:    
-        print("Sorry, you lost.")
-        print("The word was:", word)
+def display_menu():
+    pass
 
 def main():
-    print("Play the H A N G M A N game")
-    while True:
-        play_game()
-        print()
-        again = input("Do you want to play again (y/n)?: ").lower()
-        if again != "y":
-            break
+    pygame.init()
+    screen = pygame.display.set_mode((constants.GAME_WIDTH, constants.GAME_HEIGHT))
+    pygame.display.set_caption("Hangman")
+    
+    hangman = Hangman("", 0, 0, "", 0, 0, "")
+    hangman.draw_menu(screen)
 
 if __name__ == "__main__":
     main()
